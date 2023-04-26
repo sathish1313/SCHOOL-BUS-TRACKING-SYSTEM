@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>School Bus Tracking System</title>
+	<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+    <nav>
+		<a href="#" class="active">Home</a>
+		<a href="#">About us</a>
+		<a href="#">Student profile</a>
+		<a href="#">Settings</a>
+		<a href="#">Signup</a>
+	</nav>
+	<div class="header">
+		<h1>School Bus Tracking System</h1>
+	</div>
+	<div class="container">
+		<h2>Track Your Bus</h2>
+		<form>
+			<label for="bus-number">REGIS.NUMBER:</label>
+			<input type="text" id="bus-number" name="bus-number">
+			<br><br>
+			<label for="destination">BUS ID:</label>
+			<input type="text" id="destination" name="destination">
+			<br><br>
+           
+			
+      <a href="https://www.google.com/maps/" target="_blank"><button type="button" onclick="trackBus()">Track Bus</button></a>
+		</form>
+		
+	</div>
+    <div class="p">
+	<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"
+    async defer></script>
+    <script src="script.js"></script>
+    
+    <div id="map">
+      <div class="container">
+  
+  
+</div>
+    <script>
+             window.lat = 37.7850;
+window.lng = -122.4383;
+function circlePoint(time) {
+  var radius = 0.01;
+  var x = Math.cos(time) * radius;
+  var y = Math.sin(time) * radius;
+  return {lat:window.lat + y, lng:window.lng + x};
+};
+      function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(updatePosition);
+    }
+    return null;
+};
+function updatePosition(position) {
+  if (position) {
+    window.lat = position.coords.latitude;
+    window.lng = position.coords.longitude;
+  }
+}
+setInterval(function(){updatePosition(getLocation());}, 10000);
+function currentLocation() {
+  return {lat:window.lat, lng:window.lng};
+};
+      var map;
+      var mark;
+      var lineCoords = [];
+      var initialize = function() {
+      map  = new google.maps.Map(document.getElementById('map-canvas'), {center:{lat:lat,lng:lng},zoom:12});
+      mark = new google.maps.Marker({position:{lat:lat, lng:lng}, map:map});
+};
+      var redraw = function(payload) {
+  lat = payload.message.lat;
+  lng = payload.message.lng;
+  map.setCenter({lat:lat, lng:lng, alt:0});
+  mark.setPosition({lat:lat, lng:lng, alt:0});
+    lineCoords.push(new google.maps.LatLng(lat, lng));
+  var lineCoordinatesPath = new google.maps.Polyline({
+    path: lineCoords,
+    geodesic: true,
+    strokeColor: '#2E10FF'
+  });
+  lineCoordinatesPath.setMap(map);
+};
+window.initialize = initialize;
+      function initMap() {
+        var location = {lat: -8.2058261, lng: 114.3757281};
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 4,
+          center: location
+        });
+        var marker = new google.maps.Marker({
+          position: location,
+          map: map
+        });
+        var pnChannel = "map-channel";
+        var pnChannel = "map2-channel";
+        var pnChannel = "map3-channel";
+        var pubnub = new PubNub({
+          publishKey:   'pub-c-c037f5ed-f348-4355-80d3-65a9b05ab624',
+          subscribeKey: 'sub-c-71f0c85a-e16e-11e7-b35f-e6000c5dd7b9'
+        });
+        pubnub.subscribe({channels: [pnChannel]});
+        pubnub.addListener({message:redraw});
+      }
+      setInterval(function() {
+  pubnub.publish({channel:pnChannel, message:circlePoint(new Date().getTime()/1000)});
+}, 500);
+      setInterval(function() {
+  pubnub.publish({channel:pnChannel, message:currentLocation()});
+}, 5000);
+     
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC_pxCkJ2Y4brCrq_Jw7dMd-SVAToE7mJo&callback=initMap">
+    </script>
+   </div>      
+  
+</body>
+</html>
